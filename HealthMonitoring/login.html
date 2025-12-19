@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cloud Based Health Monitoring System - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #185a9d, #43cea2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      color: #43cea2;
+    }
+    p.slogan {
+      font-style: italic;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #185a9d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #0f3d6d;
+    }
+    #loginMsg { margin-top: 15px; }
+    a { color: #185a9d; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Login</h1>
+    <p class="slogan">"Access your health dashboard securely"</p>
+    <input type="text" id="user" placeholder="Username">
+    <input type="password" id="pass" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginMsg"></p>
+    <p>New user? <a href="register.html">Register here</a></p>
+  </div>
+
+  <script>
+    function login() {
+      const user = document.getElementById("user").value.trim();
+      const pass = document.getElementById("pass").value.trim();
+
+      const savedUser = localStorage.getItem("username");
+      const savedPass = localStorage.getItem("password");
+
+      if (user === savedUser && pass === savedPass) {
+        document.getElementById("loginMsg").style.color = "green";
+        document.getElementById("loginMsg").innerText = "Login successful! Redirecting...";
+        setTimeout(() => {
+          window.location.href = "new_index.html";
+        }, 1500);
+      } else {
+        document.getElementById("loginMsg").style.color = "red";
+        document.getElementById("loginMsg").innerText = "Invalid credentials.";
+      }
+    }
+  </script>
+</body>
+</html>

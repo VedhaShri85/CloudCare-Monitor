@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cloud Based Health Monitoring System - Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(90deg,#43cea2,#185a9d);
+      color: white;
+      padding: 20px 15px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    header h1 { margin: 0; font-size: 28px; }
+    header p { margin: 5px 0 0; font-style: italic; font-size: 16px; }
+
+    .menu { position: absolute; top: 20px; right: 20px; }
+    .menu-btn {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .menu-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: white;
+      min-width: 180px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .menu.show .menu-content { display: block; }
+    .menu-content a {
+      display: block;
+      padding: 12px 15px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .container {
+      display: flex;
+      padding: 25px 40px;
+      gap: 30px;
+      max-width: 1400px;
+      margin: auto;
+      flex-wrap: wrap;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .chart-card canvas {
+      width: 100% !important;
+      height: 250px !important;
+    }
+
+    #info, #profileInfo {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .status-normal { color: green; font-weight: bold; }
+    .status-warning { color: orange; font-weight: bold; }
+    .status-critical { color: red; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Cloud Based Health Monitoring System</h1>
+  <p>Real-time vitals, smarter decisions</p>
+
+  <div class="menu" id="menu">
+    <button class="menu-btn" onclick="toggleMenu()">Menu</button>
+    <div class="menu-content">
+      <a href="#" onclick="showProfile()">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="sidebar">
+    <h2>Health Monitor</h2>
+
+    <label>Department:</label>
+    <select id="dept">
+      <option>Cardiology</option>
+      <option>Neurology</option>
+      <option>Orthopedics</option>
+      <option>Pediatrics</option>
+    </select>
+
+    <label>Patient ID:</label>
+    <input type="text" id="pid" value="P0004">
+    <button onclick="loadPatient()">View Patient</button>
+
+    <div id="info"></div>
+    <div id="profileInfo"></div>
+  </div>
+
+  <div class="content">
+    <div class="chart-card"><canvas id="hrChart"></canvas></div>
+    <div class="chart-card"><canvas id="spo2Chart"></canvas></div>
+    <div class="chart-card"><canvas id="tempChart"></canvas></div>
+  </div>
+</div>
+
+<script>
+  function toggleMenu(){ document.getElementById("menu").classList.toggle("show"); }
+
+  function logout(){
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+
+  function showProfile(){
+    document.getElementById("profileInfo").innerHTML = `
+      <h3>Profile Info</h3>
+      <p><b>Patient ID:</b> ${pid.value}</p>
+      <p><b>Department:</b> ${dept.value}</p>
+    `;
+  }
+
+  const API_BASE = "https://qvqyl2jty3.execute-api.ap-south-1.amazonaws.com/prod/query";
+  let hrChart, spo2Chart, tempChart;
+  let currentIndex = 0;
+
+  function getStatus(hr, spo2, temp){
+    if(hr>120 || spo2<90 || temp>39) return "Critical";
+    if(hr>100 || spo2<95 || temp>37.5) return "Warning";
+    return "Normal";
+  }
+
+  async function loadPatient(){
+    const res = await fetch(`${API_BASE}?patientId=${pid.value}`);
+    const data = await res.json();
+    if(!data || data.length === 0) return;
+
+    if(currentIndex >= data.length) currentIndex = 0;
+
+    const slice = data.slice(Math.max(0, currentIndex - 4), currentIndex + 1);
+    const labels = slice.map(d => new Date(d.ts).toLocaleTimeString());
+    const hrValues = slice.map(d => d.heartRate);
+    const spo2Values = slice.map(d => d.spo2);
+    const tempValues = slice.map(d => d.temperature);
+
+    const latest = slice[slice.length - 1];
+    const status = getStatus(latest.heartRate, latest.spo2, latest.temperature);
+
+    info.innerHTML = `
+      <p><b>Status:</b> <span class="status-${status.toLowerCase()}">${status}</span></p>
+      <p>Heart Rate: ${latest.heartRate}</p>
+      <p>SpO2: ${latest.spo2}</p>
+      <p>Temperature: ${latest.temperature}</p>
+    `;
+
+    hrChart?.destroy();
+    spo2Chart?.destroy();
+    tempChart?.destroy();
+
+    hrChart = new Chart(hrChart?.ctx || document.getElementById("hrChart"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "Heart Rate", data: hrValues, borderColor: "blue", tension: 0.3 }] },
+      options: { scales: { y: { min: 60, max: 130 } } }
+    });
+
+    spo2Chart = new Chart(document.getElementById("spo2Chart"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "SpO2", data: spo2Values, borderColor: "green", tension: 0.3 }] },
+      options: { scales: { y: { min: 90, max: 100 } } }
+    });
+
+    tempChart = new Chart(document.getElementById("tempChart"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "Temperature", data: tempValues, borderColor: "red", tension: 0.3 }] },
+      options: { scales: { y: { min: 35, max: 40 } } }
+    });
+
+    currentIndex++;
+  }
+
+  loadPatient();
+  setInterval(loadPatient, 10000);
+</script>
+
+</body>
+</html>

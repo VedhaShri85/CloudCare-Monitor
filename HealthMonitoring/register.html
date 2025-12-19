@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cloud Based Health Monitoring System - Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #43cea2, #185a9d);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      color: #185a9d;
+    }
+    p.slogan {
+      font-style: italic;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #43cea2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #2f8f7f;
+    }
+    #registerMsg { margin-top: 15px; }
+    a { color: #185a9d; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Register</h1>
+    <p class="slogan">"Join the future of health monitoring"</p>
+    <input type="text" id="newUser" placeholder="Enter Username">
+    <input type="password" id="newPass" placeholder="Enter Password">
+    <button onclick="register()">Register</button>
+    <p id="registerMsg"></p>
+    <p>Already have an account? <a href="login.html">Login here</a></p>
+  </div>
+
+  <script>
+    function register() {
+      const user = document.getElementById("newUser").value.trim();
+      const pass = document.getElementById("newPass").value.trim();
+
+      if (user && pass) {
+        localStorage.setItem("username", user);
+        localStorage.setItem("password", pass);
+
+        document.getElementById("registerMsg").style.color = "green";
+        document.getElementById("registerMsg").innerText = "Registered successfully! Redirecting...";
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+      } else {
+        document.getElementById("registerMsg").style.color = "red";
+        document.getElementById("registerMsg").innerText = "Please enter both fields.";
+      }
+    }
+  </script>
+</body>
+</html>
